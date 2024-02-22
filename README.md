@@ -1,2 +1,2 @@
 # simple-banking-app
-A banking app designed with spring boot hibernate
+A banking app designed with java, spring boot & hibernate
