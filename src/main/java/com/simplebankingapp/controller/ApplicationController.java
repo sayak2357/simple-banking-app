@@ -57,4 +57,9 @@ public class ApplicationController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/view-accounts")
+    public List<BankAccount> viewAllAccounts(){
+        return bankService.getAllAccounts();
+    }
+
 }

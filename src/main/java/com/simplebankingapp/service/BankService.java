@@ -6,6 +6,8 @@ import com.simplebankingapp.repository.BankAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BankService {
 
@@ -28,5 +30,9 @@ public class BankService {
         newBankAccount.setUser(user);
         bankAccountRepository.save(newBankAccount);
         return newBankAccount;
+    }
+
+    public List<BankAccount> getAllAccounts(){
+        return bankAccountRepository.findAll();
     }
 }
