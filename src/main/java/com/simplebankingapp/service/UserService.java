@@ -5,6 +5,8 @@ import com.simplebankingapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -15,5 +17,13 @@ public class UserService {
         userRepository.save(user);
 
         return user;
+    }
+
+    public User findById(Long userId){
+        return userRepository.findById(userId).get();
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

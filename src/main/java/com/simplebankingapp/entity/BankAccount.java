@@ -16,7 +16,7 @@ public class BankAccount {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    private Integer balance;
+    private Integer balance = 0;
 
     public Long getId() {
         return id;

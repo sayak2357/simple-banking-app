@@ -15,8 +15,8 @@ public class User {
     private String name;
     private Integer age;
 
-    @OneToOne(mappedBy = "user")
-    private BankAccount bankAccount;
+//    @OneToOne(mappedBy = "user")
+//    private BankAccount bankAccount;
 
     public Long getId() {
         return id;
@@ -42,11 +42,11 @@ public class User {
         this.age = age;
     }
 
-    public BankAccount getBankAccount() {
-        return bankAccount;
-    }
-
-    public void setBankAccount(BankAccount bankAccount) {
-        this.bankAccount = bankAccount;
-    }
+//    public BankAccount getBankAccount() {
+//        return bankAccount;
+//    }
+//
+//    public void setBankAccount(BankAccount bankAccount) {
+//        this.bankAccount = bankAccount;
+//    }
 }
