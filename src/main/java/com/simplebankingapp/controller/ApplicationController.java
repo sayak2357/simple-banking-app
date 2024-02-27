@@ -1,6 +1,7 @@
 package com.simplebankingapp.controller;
 
 import com.simplebankingapp.dto.CreateUserRequest;
+import com.simplebankingapp.dto.DepositMoneyRequest;
 import com.simplebankingapp.dto.OpenBankAccountResponse;
 import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
@@ -60,6 +61,16 @@ public class ApplicationController {
     @GetMapping("/view-accounts")
     public List<BankAccount> viewAllAccounts(){
         return bankService.getAllAccounts();
+    }
+
+    @PostMapping("/deposit")
+    public String deposit(@RequestBody DepositMoneyRequest req, HttpServletRequest request) throws Exception {
+//        String requestKey = request.getHeader("X-Request-Key");
+//        if(requestKey.equals(null) || !requestKey.equals(apiKey))
+//            throw new Exception("unauthorized");
+        boolean res = bankService.depositMoney(req.getBankAccountId(), req.getAmount());
+
+        return res ? "amount "+req.getAmount()+" deposited successfully": "invalid bank acount number";
     }
 
 }

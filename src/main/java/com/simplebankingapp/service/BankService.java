@@ -32,6 +32,17 @@ public class BankService {
         return newBankAccount;
     }
 
+    public boolean depositMoney(Long id, Integer amount){
+        BankAccount currAccount = bankAccountRepository.findById(id).get();
+        if(currAccount==null)
+            return false;
+        Integer balance = currAccount.getBalance();
+        balance+=amount;
+        currAccount.setBalance(balance);
+        bankAccountRepository.save(currAccount);
+        return true;
+    }
+
     public List<BankAccount> getAllAccounts(){
         return bankAccountRepository.findAll();
     }

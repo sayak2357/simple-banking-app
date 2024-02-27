@@ -1,5 +1,6 @@
 package com.simplebankingapp.service;
 
+import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
 import com.simplebankingapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,4 +27,5 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
 }
