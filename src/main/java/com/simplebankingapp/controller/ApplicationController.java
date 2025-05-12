@@ -8,6 +8,7 @@ import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
 import com.simplebankingapp.service.BankService;
 import com.simplebankingapp.service.UserService;
+import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
