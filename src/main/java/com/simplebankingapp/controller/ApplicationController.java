@@ -6,6 +6,8 @@ import com.simplebankingapp.dto.OpenBankAccountResponse;
 import com.simplebankingapp.dto.TransferMoneyRequest;
 import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
+import com.simplebankingapp.exceptions.UnauthorizedAccessException;
+import com.simplebankingapp.service.AuthService;
 import com.simplebankingapp.service.BankService;
 import com.simplebankingapp.service.UserService;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RequestMapping("/api/baking-system")
 @RestController
 public class ApplicationController {
 
@@ -23,6 +26,10 @@ public class ApplicationController {
 
     @Autowired
     BankService bankService;
+
+    @Autowired
+    AuthService authService;
+
     @PostMapping("/create-user")
     public User createUser(@RequestBody CreateUserRequest req, HttpServletRequest request) throws Exception {
 //        String requestKey = request.getHeader("X-Request-Key");
@@ -61,7 +68,13 @@ public class ApplicationController {
     }
 
     @GetMapping("/view-accounts")
-    public List<BankAccount> viewAllAccounts(){
+    public List<BankAccount> viewAllAccounts(@RequestHeader("x-user-id") long userId){
+        String uri = "/api/banking-system/view-accounts";
+        String method = "GET";
+        boolean isAuthorized = authService.isAuthorized(uri,method,userId);
+        if(!isAuthorized)
+            throw new UnauthorizedAccessException("Unauthorized access!");
+        System.out.println("userId="+userId);
         return bankService.getAllAccounts();
     }
 
@@ -70,6 +83,11 @@ public class ApplicationController {
 //        String requestKey = request.getHeader("X-Request-Key");
 //        if(requestKey.equals(null) || !requestKey.equals(apiKey))
 //            throw new Exception("unauthorized");
+
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        System.out.println(uri);
+        System.out.println(method);
         boolean res = bankService.depositMoney(req.getBankAccountId(), req.getAmount());
 
         return res ? "amount "+req.getAmount()+" deposited successfully": "invalid bank acount number";
