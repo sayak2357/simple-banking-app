@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/baking-system")
+@RequestMapping("/api/banking-system")
 @RestController
 public class ApplicationController {
 
@@ -63,14 +63,19 @@ public class ApplicationController {
     }
 
     @GetMapping("/view-users")
-    public List<User> viewAllUsers(){
+    public List<User> viewAllUsers(@RequestHeader("x-user-id") long userId, HttpServletRequest request){
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        boolean isAuthorized = authService.isAuthorized(uri,method,userId);
+        if(!isAuthorized)
+            throw new UnauthorizedAccessException("Unauthorized access!");
         return userService.getAllUsers();
     }
 
     @GetMapping("/view-accounts")
-    public List<BankAccount> viewAllAccounts(@RequestHeader("x-user-id") long userId){
-        String uri = "/api/banking-system/view-accounts";
-        String method = "GET";
+    public List<BankAccount> viewAllAccounts(@RequestHeader("x-user-id") long userId, HttpServletRequest request) throws Exception {
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
         boolean isAuthorized = authService.isAuthorized(uri,method,userId);
         if(!isAuthorized)
             throw new UnauthorizedAccessException("Unauthorized access!");
@@ -79,15 +84,16 @@ public class ApplicationController {
     }
 
     @PostMapping("/deposit")
-    public String deposit(@RequestBody DepositMoneyRequest req, HttpServletRequest request) throws Exception {
+    public String deposit(@RequestHeader("x-user-id") long userId,@RequestBody DepositMoneyRequest req, HttpServletRequest request) throws Exception {
 //        String requestKey = request.getHeader("X-Request-Key");
 //        if(requestKey.equals(null) || !requestKey.equals(apiKey))
 //            throw new Exception("unauthorized");
 
         String uri = request.getRequestURI();
         String method = request.getMethod();
-        System.out.println(uri);
-        System.out.println(method);
+        if(!authService.isAuthorized(uri,method,userId)){
+            throw new UnauthorizedAccessException("Unauthorized access");
+        }
         boolean res = bankService.depositMoney(req.getBankAccountId(), req.getAmount());
 
         return res ? "amount "+req.getAmount()+" deposited successfully": "invalid bank acount number";
