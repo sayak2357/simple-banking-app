@@ -1,15 +1,13 @@
 package com.simplebankingapp.controller;
 
-import com.simplebankingapp.dto.CreateUserRequest;
-import com.simplebankingapp.dto.DepositMoneyRequest;
-import com.simplebankingapp.dto.OpenBankAccountResponse;
-import com.simplebankingapp.dto.TransferMoneyRequest;
+import com.simplebankingapp.dto.*;
 import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
-import com.simplebankingapp.exceptions.UnauthorizedAccessException;
+import com.simplebankingapp.exceptions.UnauthorizedException;
 import com.simplebankingapp.service.AuthService;
 import com.simplebankingapp.service.BankService;
 import com.simplebankingapp.service.UserService;
+import com.simplebankingapp.util.JwtUtil;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +28,27 @@ public class ApplicationController {
     @Autowired
     AuthService authService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PostMapping("/login")
+    public UserToken authenticate(@RequestBody LoginRequest user) {
+        String username = user.getUsername();
+        String password = user.getPassword();
+        boolean auth = userService.auth(username,password);
+        if (auth) {
+            return new UserToken(jwtUtil.generateToken(username),false);
+        }
+        return new UserToken("Invalid credentials",true);
+    }
+
     @PostMapping("/create-user")
     public User createUser(@RequestBody CreateUserRequest req, HttpServletRequest request) throws Exception {
 //        String requestKey = request.getHeader("X-Request-Key");
 //        if(requestKey.equals(null) || !requestKey.equals(apiKey))
 //            throw new Exception("unauthorized");
         User newUser = new User();
-        newUser.setName(req.getName());
+        newUser.setUsername(req.getName());
         newUser.setAge(req.getAge());
         return userService.saveUser(newUser);
     }
@@ -63,24 +75,36 @@ public class ApplicationController {
     }
 
     @GetMapping("/view-users")
-    public List<User> viewAllUsers(@RequestHeader("x-user-id") long userId, HttpServletRequest request){
-        String uri = request.getRequestURI();
-        String method = request.getMethod();
-        boolean isAuthorized = authService.isAuthorized(uri,method,userId);
-        if(!isAuthorized)
-            throw new UnauthorizedAccessException("Unauthorized access!");
-        return userService.getAllUsers();
+    public List<User> viewAllUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest request){
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String uri = request.getRequestURI();
+            String method = request.getMethod();
+            String token = authHeader.substring(7);
+            String username = jwtUtil.validateToken(token);
+            long userId = userService.getIdFromUsername(username);
+            boolean isAuthorized = authService.isAuthorized(uri, method, userId);
+            if (!isAuthorized)
+                throw new UnauthorizedException("Unauthorized access!");
+            return userService.getAllUsers();
+        }
+        throw new UnauthorizedException("Bearer token not present in request!");
     }
 
     @GetMapping("/view-accounts")
-    public List<BankAccount> viewAllAccounts(@RequestHeader("x-user-id") long userId, HttpServletRequest request) throws Exception {
-        String uri = request.getRequestURI();
-        String method = request.getMethod();
-        boolean isAuthorized = authService.isAuthorized(uri,method,userId);
-        if(!isAuthorized)
-            throw new UnauthorizedAccessException("Unauthorized access!");
-        System.out.println("userId="+userId);
-        return bankService.getAllAccounts();
+    public List<BankAccount> viewAllAccounts(@RequestHeader("Authorization") String authHeader, HttpServletRequest request) throws Exception {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String uri = request.getRequestURI();
+            String method = request.getMethod();
+            String token = authHeader.substring(7);
+            String username = jwtUtil.validateToken(token);
+            long userId = userService.getIdFromUsername(username);
+            boolean isAuthorized = authService.isAuthorized(uri, method, userId);
+            if (!isAuthorized)
+                throw new UnauthorizedException("Unauthorized access!");
+            //System.out.println("userId=" + userId);
+            return bankService.getAllAccounts();
+        }
+        throw new UnauthorizedException("Bearer token not present in request!");
     }
 
     @PostMapping("/deposit")
@@ -92,7 +116,7 @@ public class ApplicationController {
         String uri = request.getRequestURI();
         String method = request.getMethod();
         if(!authService.isAuthorized(uri,method,userId)){
-            throw new UnauthorizedAccessException("Unauthorized access");
+            throw new UnauthorizedException("Unauthorized access");
         }
         boolean res = bankService.depositMoney(req.getBankAccountId(), req.getAmount());
 

@@ -28,4 +28,11 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public Long getIdFromUsername(String username){
+        User thisUser = userRepository.findByUsername(username);
+        return thisUser!=null? thisUser.getId() : null;
+    }
+
+    public boolean auth(String username, String password){ return userRepository.findByUsernameAndPassword(username,password)!=null;}
+
 }
