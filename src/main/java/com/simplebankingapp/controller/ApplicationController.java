@@ -8,6 +8,7 @@ import com.simplebankingapp.service.AuthService;
 import com.simplebankingapp.service.BankService;
 import com.simplebankingapp.service.UserService;
 import com.simplebankingapp.util.JwtUtil;
+import com.simplebankingapp.util.MD5Util;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,11 @@ public class ApplicationController {
     @Autowired
     private JwtUtil jwtUtil;
 
+
     @PostMapping("/login")
     public UserToken authenticate(@RequestBody LoginRequest user) {
         String username = user.getUsername();
-        String password = user.getPassword();
+        String password = MD5Util.md5(user.getPassword());
         boolean auth = userService.auth(username,password);
         if (auth) {
             return new UserToken(jwtUtil.generateToken(username),false);
@@ -50,6 +52,7 @@ public class ApplicationController {
         User newUser = new User();
         newUser.setUsername(req.getName());
         newUser.setAge(req.getAge());
+        newUser.setPassword(MD5Util.md5(req.getPassword()));
         return userService.saveUser(newUser);
     }
 
