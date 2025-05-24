@@ -85,6 +85,8 @@ public class ApplicationController {
             String token = authHeader.substring(7);
             String username = jwtUtil.validateToken(token);
             long userId = userService.getIdFromUsername(username);
+            if(userId==-1)
+                throw new UnauthorizedException("Invalid user!");
             boolean isAuthorized = authService.isAuthorized(uri, method, userId);
             if (!isAuthorized)
                 throw new UnauthorizedException("Unauthorized access!");

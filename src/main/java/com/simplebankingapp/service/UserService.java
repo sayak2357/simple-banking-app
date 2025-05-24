@@ -30,7 +30,7 @@ public class UserService {
 
     public Long getIdFromUsername(String username){
         User thisUser = userRepository.findByUsername(username);
-        return thisUser!=null? thisUser.getId() : null;
+        return thisUser!=null? thisUser.getId() : -1;
     }
 
     public boolean auth(String username, String password){ return userRepository.findByUsernameAndPassword(username,password)!=null;}
