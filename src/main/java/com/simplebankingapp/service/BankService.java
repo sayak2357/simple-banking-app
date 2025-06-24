@@ -42,6 +42,16 @@ public class BankService {
         bankAccountRepository.save(currAccount);
         return true;
     }
+    public boolean depositMoneyByUser(Long userId, Integer amount){
+        BankAccount currAccount = bankAccountRepository.findByUserId(userId);
+        if(currAccount==null)
+            return false;
+        Integer balance = currAccount.getBalance();
+        balance+=amount;
+        currAccount.setBalance(balance);
+        bankAccountRepository.save(currAccount);
+        return true;
+    }
     public BankAccount getBankAccount(Long id){
         BankAccount curr = bankAccountRepository.findById(id).get();
         return curr;

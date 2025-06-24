@@ -1,5 +1,6 @@
 package com.simplebankingapp.controller;
 
+import com.simplebankingapp.constants.Constants;
 import com.simplebankingapp.dto.*;
 import com.simplebankingapp.entity.BankAccount;
 import com.simplebankingapp.entity.User;
@@ -53,24 +54,29 @@ public class ApplicationController {
         newUser.setUsername(req.getName());
         newUser.setAge(req.getAge());
         newUser.setPassword(MD5Util.md5(req.getPassword()));
-        return userService.saveUser(newUser);
+        User createdUser = userService.saveUser(newUser);
+        userService.createUserRole(createdUser.getId(), Constants.REGULAR_USER);
+        return createdUser;
     }
 
     @GetMapping("/open-account")
-    public OpenBankAccountResponse openBankAccount(@RequestParam(value = "id") Long userid) throws Exception {
+    public OpenBankAccountResponse openBankAccount(@RequestHeader("Authorization") String authHeader) throws Exception {
         OpenBankAccountResponse res = new OpenBankAccountResponse();
-        BankAccount newAccount = bankService.openAccount(userid);
+        String token = authHeader.substring(7);
+        String username = jwtUtil.validateToken(token);
+        long userId = userService.getIdFromUsername(username);
+        BankAccount newAccount = bankService.openAccount(userId);
         if(newAccount==null) {
             res.setMessage("invalid user id");
             res.setSuccess(false);
         }
         else if(newAccount.getBalance()==-1){
-            res.setMessage("user with id "+userid+" already have an active account");
+            res.setMessage("user with id "+userId+" already have an active account");
             res.setSuccess(false);
         }
         else{
             res.setMessage("account created successfully");
-            res.setUserId(userid);
+            res.setUserId(userId);
             res.setBankAccount(newAccount);
             res.setSuccess(true);
         }
@@ -113,17 +119,19 @@ public class ApplicationController {
     }
 
     @PostMapping("/deposit")
-    public String deposit(@RequestHeader("x-user-id") long userId,@RequestBody DepositMoneyRequest req, HttpServletRequest request) throws Exception {
+    public String deposit(@RequestHeader("Authorization") String authHeader, @RequestBody DepositMoneyRequest req, HttpServletRequest request) throws Exception {
 //        String requestKey = request.getHeader("X-Request-Key");
 //        if(requestKey.equals(null) || !requestKey.equals(apiKey))
 //            throw new Exception("unauthorized");
-
+        String token = authHeader.substring(7);
+        String username = jwtUtil.validateToken(token);
+        long userId = userService.getIdFromUsername(username);
         String uri = request.getRequestURI();
         String method = request.getMethod();
         if(!authService.isAuthorized(uri,method,userId)){
             throw new UnauthorizedException("Unauthorized access");
         }
-        boolean res = bankService.depositMoney(req.getBankAccountId(), req.getAmount());
+        boolean res = bankService.depositMoneyByUser(userId, req.getAmount());
 
         return res ? "amount "+req.getAmount()+" deposited successfully": "invalid bank acount number";
     }
