@@ -137,16 +137,16 @@ public class ApplicationController {
     }
 
     @PostMapping("/transfer-money")
-    public String transfer(@RequestBody TransferMoneyRequest req, HttpServletRequest request) throws Exception {
-//        String requestKey = request.getHeader("X-Request-Key");
-//        if(requestKey.equals(null) || !requestKey.equals(apiKey))
-//            throw new Exception("unauthorized");
+    public String transfer(@RequestHeader("Authorization") String authHeader,@RequestBody TransferMoneyRequest req, HttpServletRequest request) throws Exception {
+        String token = authHeader.substring(7);
+        String username = jwtUtil.validateToken(token);
+        long userId = userService.getIdFromUsername(username);
         Integer amount = req.getAmount();
-        Long fromBankAccountId = req.getFromBankAccountId();
+        BankAccount fromBankAccount = bankService.getBankAccountByUserid(userId);
+        Long fromBankAccountId = fromBankAccount.getId();
         Long toBankAccountId = req.getToBankAccountId();
         if(fromBankAccountId==toBankAccountId)
             throw new Exception("source and destination accounts can't be same");
-        BankAccount fromBankAccount = bankService.getBankAccount(fromBankAccountId);
         BankAccount toBankAccount = bankService.getBankAccount(toBankAccountId);
         if(fromBankAccount==null)
             throw new Exception("invalid 'from' bank account id");
